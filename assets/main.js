@@ -237,7 +237,14 @@
     // h1 pierwszego ekranu (hero) — jedyny ruch, jaki hero dostaje
     var h1 = document.querySelector('section h1, header h1, .hero h1, .hero-cine h1');
     if (h1 && !splitLines(h1)) { h1.classList.add('mt-fade'); }
-    if (h1) { requestAnimationFrame(function () { h1.classList.add('mt-in'); }); }
+    if (h1) {
+      var wjedz = function () { requestAnimationFrame(function () { h1.classList.add('mt-in'); }); };
+      // przy wejsciu z logo naglowek wjezdza dopiero PO zejsciu kurtyny (inaczej gra pod nia)
+      if (docEl.classList.contains('intro-on')) {
+        window.addEventListener('wejscie:koniec', wjedz, { once: true });
+        setTimeout(wjedz, 3500);
+      } else { wjedz(); }
+    }
 
     // nagłówki sekcji — wchodzą, gdy sekcja pojawia się w oknie
     var heads = all('.head h2').filter(function (h) { return !firstScreen(h); });
@@ -727,12 +734,18 @@
     var bm = document.querySelector('.hero-cine .brandmark');
     if (!bm || reduce) return;
     document.documentElement.classList.add('bm-on');
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () { bm.classList.add('bm-in'); });
-    });
+    function wejdz() {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { bm.classList.add('bm-in'); });
+      });
+    }
+    // Przy wejściu z logo nazwa wchodzi dopiero PO zejściu kurtyny (inaczej gra pod nią).
+    var kurtyna = document.documentElement.classList.contains('intro-on');
+    if (kurtyna) window.addEventListener('wejscie:koniec', wejdz, { once: true });
+    else wejdz();
     // Bezpiecznik czasowy: gdyby przejście nie wystartowało (np. karta w tle przy wejściu),
-    // po sekundzie i tak odsłaniamy treść — nikt nigdy nie zobaczy pustego hero.
-    setTimeout(function () { bm.classList.add('bm-in'); }, 1000);
+    // po sekundzie (z kurtyną: po 3,5 s) i tak odsłaniamy treść - nikt nie zobaczy pustego hero.
+    setTimeout(function () { bm.classList.add('bm-in'); }, kurtyna ? 3500 : 1000);
   });
 })();
 
